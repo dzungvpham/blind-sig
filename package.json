@@ -1,0 +1,29 @@
+{
+  "name": "blind-sig",
+  "version": "1.0.0",
+  "description": "A NodeJS implementation of Chaum's blind signature scheme.",
+  "main": "blind-sig.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dzungvpham/blind-sig.git"
+  },
+  "keywords": [
+    "blind",
+    "signature"
+  ],
+  "author": "Dzung Pham",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dzungvpham/blind-sig/issues"
+  },
+  "homepage": "https://github.com/dzungvpham/blind-sig#readme",
+  "dependencies": {
+    "big-integer": "^1.6.52"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}

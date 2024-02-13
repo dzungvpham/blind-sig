@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Blind Signature Demo</title>
+</head>
+<body>
+    <h1>Blind Signature Demo</h1>
+
+    
+        <button id="generateKeysButton">Generate Keys</button>
+    <div>
+        <p style="word-wrap: break-word;">e: <span id="e"></span></p>
+        <p style="word-wrap: break-word;">d: <span id="d"></span></p>
+        <p style="word-wrap: break-word;">n: <span id="n"></span></p>
+    </div>
+    
+    <div>
+        <label for="messageInput">Enter Message:</label>
+        <input type="text" id="messageInput" value="Hello world!">
+    </div>
+    
+    <div>
+        <br/>
+        <button id="runButton">Run Blind Signature</button>
+    </div>
+
+    <h2>Results:</h2>
+    <p style="word-wrap: break-word;">r: <span id="r"></span></p>
+    <p style="word-wrap: break-word;">Blinded Message: <span id="blindedMessageOutput"></span></p>
+    <p style="word-wrap: break-word;">Signature: <span id="signatureOutput"></span></p>
+    <p style="word-wrap: break-word;">Unblinded Result: <span id="unblindedResultOutput"></span></p>
+
+    <script src="./blind-sig.min.js"></script>
+    <script>
+        const blindSig = require("blind-sig");
+
+        document.addEventListener("DOMContentLoaded", async function() {            
+            let keys, publicKey, privateKey, e, d, n;
+
+            const eDiv = document.getElementById("e");
+            const dDiv = document.getElementById("d");
+            const nDiv = document.getElementById("n");
+            const rDiv = document.getElementById("r");            
+            const messageInput = document.getElementById("messageInput");
+            const blindedMessageOutput = document.getElementById("blindedMessageOutput");
+            const signatureOutput = document.getElementById("signatureOutput");
+            const unblindedResultOutput = document.getElementById("unblindedResultOutput");
+
+            async function genKeys() {
+                keys = await crypto.subtle.generateKey(
+                    {
+                        name: "RSASSA-PKCS1-v1_5",
+                        modulusLength: 2048,
+                        publicExponent: new Uint8Array([0x01, 0x00, 0x01]),
+                        hash: "SHA-256",
+                    },
+                    true,
+                    ["sign", "verify"]
+                );
+                publicKey = await crypto.subtle.exportKey("jwk", keys.publicKey);
+                privateKey = await crypto.subtle.exportKey("jwk", keys.privateKey);
+                e = blindSig.base64ToBigInt(publicKey.e);
+                d = blindSig.base64ToBigInt(privateKey.d);
+                n = blindSig.base64ToBigInt(publicKey.n);
+                eDiv.innerText = e;
+                dDiv.innerText = d;
+                nDiv.innerText = n;
+            }
+            
+            await genKeys();
+
+            function updateResults() {
+                const message = messageInput.value;
+                const { blinded, r } = blindSig.blind(message, e, n);
+                const signature = blindSig.sign(blinded, d, n);
+                const unblindedResult = blindSig.unblindVerify(message, signature, r, e, n);
+
+                rDiv.textContent = r.toString();
+                blindedMessageOutput.textContent = blinded.toString();
+                signatureOutput.textContent = signature.toString();
+                unblindedResultOutput.textContent = unblindedResult.toString();
+            }
+
+            document.getElementById("generateKeysButton").addEventListener("click", async function() {
+                await genKeys();
+                updateResults();
+            });
+
+            document.getElementById("runButton").addEventListener("click", function() {
+                updateResults();
+            });
+        });
+    </script>
+</body>
+</html>
